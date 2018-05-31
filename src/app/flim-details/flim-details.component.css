@@ -129,12 +129,13 @@ thead {
         margin-top: -40px;
     }
     #tableaAlign {
-        margin-left: 40px!important;
+        margin-left: 15px!important;
         width: 90%!important;
         overflow: auto;
     }
     div.panel-body {
         overflow: scroll!important;
+        margin-bottom: 20px;
     }
     th.thAlign {
         width: 100px!important;
@@ -172,3 +173,7 @@ body {
     padding: 20px 8px;
     min-width: 100px;
 }
+.custom-select {
+    position: relative;
+    font-family: Arial;
+  }

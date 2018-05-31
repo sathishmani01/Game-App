@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { SelectItem } from 'primeng/primeng';
 import { FlimServiceService } from '../service/flim-service.service'
 import { Observable } from 'rxjs';
 import 'rxjs/add/operator/map';
@@ -11,70 +12,76 @@ import * as alasql from 'alasql';
   styleUrls: ['./flim-details.component.css']
 })
 export class FlimDetailsComponent implements OnInit {
-  flimDetailsData:Array<object>=[];
+  private orderOptionList: SelectItem[];
+  private platformOptionList: SelectItem[];
+  gameDetailsArray:Array<object>=[];
+  tempgameDetailsArray:Array<object>=[];
   flimTitleCount:number;
   displayFlimDetails:any;
   loadSaveSpinner:boolean=true;
+  gamesSearch:string;
+  gamesArray:any;
+  currentPage: Number;
+  searchResultsPerPage: Number;
+  searchText:string;
+
   constructor(private flimServices:FlimServiceService) {
     this.displayFlimDetails=[];
+    this.tempgameDetailsArray=[];
+    this.orderOptionList=[];
+    this.platformOptionList=[];
+    this.gamesArray=[];
+    this.currentPage = 1;
+    this.searchResultsPerPage = 15;
    }
 
   ngOnInit() {
-    this.loadTitleCount();
     this.loadFlimdata();
   }
-  loadTitleCount(){
-    this.flimServices.getFlimtitleCount().subscribe(data=>{
-      this.flimTitleCount=data.count;
-      this.getAllFlimTitles(data.count);
-    })
-  }
-  currentIndex: any = [];
+
   loadFlimdata() {
-    this.flimServices.getFlimData().subscribe(data => {
-      this.flimDetailsData = data.results;
-      for (let i = 0; i < data.results.length; i++) {
-        let stroeindex = [];
-        let flimdata = data.results[i].films;
-        for (let j = 0; j < flimdata.length; j++) {
-          stroeindex.push(flimdata[j].match(/[0-9]+/).toString())
-        }
-        this.currentIndex.push({ 'index': i, 'value': stroeindex });
+    this.flimServices.getGamesData().subscribe(data => {
+      this.loadSaveSpinner=false;
+      this.gameDetailsArray = data;
+      this.tempgameDetailsArray=data;
+      var queryresult=alasql('select DISTINCT platform from ?',[data]);
+      this.orderOptionList.push({ label:'Ascending', value: 'Ascending' },{label:'Descending', value: 'Descending'});
+      for(let x of queryresult){
+        this.platformOptionList.push({label:x.platform,value:x.platform});
       }
-
     })
   }
 
-  getAllFlimTitles(count){
-    let storeTempTitle=[];
-    for(let i=1;i<=count;i++){
-      this.flimServices.loadEachTitle('https://swapi.co/api/films/'+i).subscribe(data=>{
-        storeTempTitle.push({'id':i,'title':data.title});
-       this.combineArrayItems(storeTempTitle)
-      })
+  selectSortType(event){
+    if(event.value ==='Ascending'){
+      var AscentData=alasql('SELECT * from ? order by score ASC',[this.tempgameDetailsArray]);
+      this.gameDetailsArray=AscentData;
+    }else if(event.value ==='Descending'){
+      var decentData=alasql('SELECT * from ? order by score desc',[this.tempgameDetailsArray]);
+      this.gameDetailsArray=decentData;
     }
-  }
-
-  combineArrayItems(storeTempTitle) {
-    if (storeTempTitle.length == this.flimTitleCount) {
-      for (let i = 0; i < this.currentIndex.length; i++) {
-        let ArrayIndex: any = [];
-        let values = this.currentIndex[i].value;
-        for (let j = 0; j < values.length; j++) {
-          ArrayIndex.push({ 'id': +values[j] })
-        }
-        var queryresult = alasql('SELECT b.id, a.title from ? as a,? as b WHERE a.id=b.id', [storeTempTitle, ArrayIndex]);
-        if (this.currentIndex[i]) {
-          var obj = {
-            name: this.flimDetailsData[i]['name'],
-            gender: this.flimDetailsData[i]['gender'],
-            birth_year: this.flimDetailsData[i]['birth_year'],
-            flimtitle: queryresult
-          }
-          this.loadSaveSpinner = false;
-          this.displayFlimDetails.push(obj);
-        }
-      }
-    }
-  }
+   }
+   selectPlatformType(event){
+    let platformArray=[];
+    platformArray.push({'platform':event.value});
+    var queryresult=alasql('SELECT * from ? as a,? as b WHERE a.platform=b.platform',[this.tempgameDetailsArray,platformArray]);
+    this.gameDetailsArray=queryresult;
+   }
+   searchGameNames(event){
+     this.gamesArray=this.tempgameDetailsArray.filter(item =>
+      item['title'] && item['title'].toString().toLowerCase().indexOf(event.query.toString().toLowerCase()) != -1);
+   }
+   selectedGameName(event){
+    this.gameDetailsArray=[];
+    this.gameDetailsArray.push(event);
+   }
+   getbackData(event){
+    this.gameDetailsArray=[];
+    this.searchText='';
+    this.gamesSearch='';
+    this.orderOptionList=[];
+    this.platformOptionList=[];
+    this.loadSaveSpinner=true;
+     this.loadFlimdata();
+   }
 }

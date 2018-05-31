@@ -8,6 +8,10 @@ import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { FlimServiceService } from './service/flim-service.service';
 import { FlimTitlesPipe } from './flim-titles.pipe';
 import { FlimTitlePipe } from './flim-title.pipe'
+import { DropdownModule, SplitButtonModule, MenuModule, InputTextModule } from 'primeng/primeng';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {AutoCompleteModule} from 'primeng/autocomplete';
+import {NgxPaginationModule} from 'ngx-pagination'; 
 
 @NgModule({
   declarations: [
@@ -19,8 +23,12 @@ import { FlimTitlePipe } from './flim-title.pipe'
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     FormsModule,
-    HttpModule
+    HttpModule,
+    DropdownModule,
+    AutoCompleteModule,
+    NgxPaginationModule
   ],
   providers: [FlimServiceService],
   bootstrap: [AppComponent]

@@ -6,24 +6,51 @@
     <div class="panel panel-default">
       <div class="panel-body pannel-padding-left">
         <h5 class="search-style">Search Filter</h5>
-        <div class="col-md-3 col-lg-3">
+        <div class="col-md-3 col-lg-3" style="width: 22%;">
           <h6>Name:</h6>
-          <input type="text" [(ngModel)]="nameSearch" class="form-control" style="width:180px;" placeholder="Search By Name">
+          <input type="text" [(ngModel)]="searchText" class="form-control" style="width:180px;" placeholder="Search By Name">
         </div>
-        <div class="col-md-3 col-lg-3">
-          <h6>Gender:</h6>
-          <input [(ngModel)]="genderSearch" class="form-control" type="text" style="width:180px;" placeholder="Search By Gender" />
+        <div class="col-md-3 col-lg-3" style="width: 22%;">
+          <h6>Sort By Score:</h6>
+          <p-dropdown placeholder="Select a Type" [options]="orderOptionList" [filter]="false" (onChange)="selectSortType($event)"
+            [style]="{'width':'180px',height:'30px','overflow':'visible'}">
+            <ng-template let-typeOrder pTemplate="item">
+              <div class="ui-helper-clearfix" style="position: relative;min-height: 25px;">
+                <div style="font-size:13px;float:right;margin-top:4px;text-align:right">{{typeOrder.label}}</div>
+              </div>
+            </ng-template>
+          </p-dropdown>
         </div>
-        <div class="col-md-3 col-lg-3">
-          <h6>Birth Year:</h6>
-          <input [(ngModel)]="birthyearSearch" class="form-control" type="text" style="width:180px;" name="amount" placeholder="Birth Year"
-          />
+        <div class="col-md-3 col-lg-3" style="width: 22%;">
+            <h6>Sort Games By Platform:</h6>
+            <p-dropdown placeholder="Select a Platform" [options]="platformOptionList" [filter]="true" (onChange)="selectPlatformType($event)"
+            [style]="{'width':'180px',height:'30px','overflow':'visible'}">
+            <ng-template let-platformType pTemplate="item">
+              <div class="ui-helper-clearfix" style="position: relative;min-height: 25px;">
+                <div style="font-size:13px;float:right;margin-top:4px;text-align:right">{{platformType.label}}</div>
+              </div>
+            </ng-template>
+          </p-dropdown>
         </div>
-        <div class="col-md-3 col-lg-3">
-          <h6>Films Title:</h6>
-          <input [(ngModel)]="flimstitleSearch" class="form-control" type="text" style="width:180px;" name="amount" placeholder="Films Title"
-          />
+        <div class="col-md-3 col-lg-3" style="width: 22%;">
+            <h6>Search Games By Criteria:</h6>
+            <p-autoComplete  
+            name="games" 
+            #GamesSearch="ngModel" 
+            [(ngModel)]="gamesSearch" 
+            [suggestions]="gamesArray" 
+            (completeMethod)="searchGameNames($event)" 
+            (onSelect)="selectedGameName($event)" 
+            [minLength]="1" 
+            placeholder="Select Games Title"
+              field="title" emptyMessage="No Record Found" [multiple]="false">
+            </p-autoComplete>
         </div>
+        <div class="col-md-1 col-lg-1">
+            <h6>Reset:</h6>
+            <button type="button" style="padding:3px 12px;" (click)="getbackData($event)" class="btn btn-success">Clear</button>
+        </div>
+        
       </div>
     </div>
 
@@ -35,32 +62,32 @@
         <table class="table" style="overflow:auto">
           <thead>
             <tr class="custom-head-seperator">
-              <th class="col-md-3 col-lg-3">Name</th>
-              <th class="col-md-3 col-lg-3">Gender</th>
-              <th class="col-md-3 col-lg-3">Birth Year</th>
-              <th class="col-md-3 col-lg-3">Films Title</th>
+              <th class="col-md-3 col-lg-3">Title</th>
+              <th>Platform</th>
+              <th>Score</th>
+              <th>Genre</th>
+              <th>Editors Choice</th>
+              <th>Release Year</th>
             </tr>
           </thead>
           <div class="loadspins" *ngIf="loadSaveSpinner">
             <i class="fa fa-circle-o-notch fa-spin" style="font-size:24px;position:absolute;top:45px;color:#0269c2"></i>
           </div>
           <tbody>
-            <tr *ngFor='let item of displayFlimDetails | userSearch:nameSearch:genderSearch:birthyearSearch:flimstitleSearch; let i = index;'>
-              <td>{{item.name}}</td>
-              <td>{{item.gender}}</td>
-              <td>{{item.birth_year}}</td>
-              <td>
-                <div *ngFor="let chname of item?.flimtitle | flimTitle:flimstitleSearch; let i =index;">
-                  {{chname?.title}}
-                  <span *ngIf="i<item?.flimtitle.length-1">,</span>
-                </div>
-              </td>
+            <tr *ngFor='let item of gameDetailsArray | userSearch:searchText | paginate: { itemsPerPage: searchResultsPerPage, currentPage: currentPage}; let i = index;'>
+              <td>{{item.title}}</td>
+              <td>{{item.platform}}</td>
+              <td>{{item.score}}</td>
+              <td>{{item.genre}}</td>
+              <td>{{item.editors_choice}}</td>
+              <td>{{item.release_year}}</td>
             </tr>
           </tbody>
-          <div *ngIf="displayFlimDetails.length ==0" class="no-data">
+          <div *ngIf="gameDetailsArray.length ==0" class="no-data">
               <div class="alert alert-danger" style="text-align:center;">No Details Found</div>
           </div>
         </table>
+        <pagination-controls  *ngIf="gameDetailsArray.length !=0" class="pagination-cursor pull-right mr-r-100" (pageChange)="currentPage = $event"></pagination-controls>
       </div>
     </div>
   </div>
